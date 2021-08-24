@@ -6,7 +6,7 @@ library(plotly)
 library(shinysense)
 
 #Load our terms content to put into the terms popup
-source("terms_content.R")
+#source("terms_content.R")
 
 navbarPage(
   title = div(img(src="images/dark_logo_small.png", style="margin-top: -8px;", height = 40)),
@@ -19,7 +19,10 @@ navbarPage(
                                 tags$script(src = "shinySwiper.js"),
                                 tags$link(rel = "stylesheet", type = "text/css", href = "appStyle.css")
                               ),
-                              h4("Swipe abstract to rate the paper"),
+                              h4("Swipe abstract to rate the submission"),
+                              textInput("name","Your name"),
+                              textInput("login_string","Login password emailed to you"),
+                              actionButton("login_button", "Login", class = "btn-success"),
                               hr(),
                               HTML(
                                 "<table style='line-height:1.5em;'>
@@ -30,17 +33,17 @@ navbarPage(
                                 </tr>
                                 <tr>
                                 <td><img src = 'images/swipe_up.png', style='height: 40px'></td>
-                                <td> Maybe...
+                                <td> I'll sit on the fence
                                 </td>
                                 </tr>
                                 <tr>
                                 <td><img src = 'images/swipe_down.png', style='height: 40px'></td>
-                                <td> Skip this one
+                                <td> I will skip this one
                                 </td>
                                 </tr>
                                 <tr>
                                 <td><img src = 'images/swipe_left.png', style='height: 40px'></td>
-                                <td> Do not recomend for R/Pharma
+                                <td> Not an ideal talk for R/Pharma
                                 </td>
                                 </tr>
                                 </table>"
@@ -56,15 +59,15 @@ navbarPage(
                               a(href = "https://www.facebook.com/sharer/sharer.php?u=https%3A//jhubiostatistics.shinyapps.io/papr", icon("facebook"))
                               ),
                  mainPanel(fluidPage(
-                   shinypopupUI("terms",
-                                buttonText = "I understand, let's get swiping!",
-                                popupDiv = terms_content_div,
-                                 div(id = "swipeCard", class = "card",
-                                     h3(id = "cardTitle", "Title"),
-                                     hr(),
-                                     p(id = "cardAbstract", "Abstract content")
-                                 )
-                   )#end popup
+                   # shinypopupUI("terms",
+                   #              buttonText = "Log me in",
+                   #              popupDiv = terms_content_div,
+                   div(id = "swipeCard", class = "card",
+                       h3(id = "cardTitle", "Title"),
+                       hr(),
+                       p(id = "cardAbstract", "Abstract content")
+                   )
+                   #)#end popup
                  ))
                  )
                )
@@ -84,5 +87,5 @@ navbarPage(
              )
            ),
   collapsible = TRUE,
-  windowTitle = "papr - peer review, but easier"
+  windowTitle = "R/Pharma C4Paper review"
 )

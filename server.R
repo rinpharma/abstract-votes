@@ -5,7 +5,6 @@ library(rdrop2)
 library(tidyr)
 library(dplyr)
 library(shiny)
-library(plotly)
 library(shinysense)
 
 #source("google_api_info.R")
@@ -13,13 +12,33 @@ library(shinysense)
 #token <- drop_auth()
 #saveRDS(token, "papr-drop.rds")
 
+# get responses
+dat <- googlesheets4::read_sheet(
+  "https://docs.google.com/spreadsheets/d/1yP8MbqSKku8nmEM1AxmEEBqBGTHPBjmeZwWb95UM-UQ/edit#gid=870824569",
+  sheet = "TEST"
+  ) %>%
+  select(
+    title = `What is the title of your talk?`,
+    abstract = Abstract,
+    submitted = `Submitted At`,
+    types = `Which types of talk would you like to be considered for?`,
+    affaliation = `{{field:47d88af0-489e-4c10-90a3-eea41eb6c246}}, what is your affiliation?`,
+    speaker = Speaker,
+    email = Email,
+    topic = Topic
+  ) %>%
+  mutate(
+    index = row_number(),
+    submitted = as.Date(submitted)
+  )
+
 ## set some parameters
 level_up <- 4 #Number of papers needed to review to level up.
 
 shinyServer(function(input, output, session) {
 
   ## load data
-  load("./biorxiv_data.Rda") #R dataset of paper info
+  #load("./biorxiv_data.Rda") #R dataset of paper info
   load("./term_pca_df.Rda") #R dataset of paper PCA
   token <- readRDS("./papr-drop.rds")
 
@@ -32,15 +51,22 @@ shinyServer(function(input, output, session) {
     login = TRUE,
     person_id = 12345,
     counter = -1,
+    name = NA,
     user_dat = data.frame(
       index   = NA,
       title   = NA,
-      link    = NA,
+      speaker    = NA,
       session = NA,
       result  = NA,
       person  = NA
     )
   )
+
+  ## Login
+  observeEvent(input$login_button, {
+    rv$person_id <- digest::digest(input$name)
+    warning(rv$person_id)
+  })
 
   ## make a popup that alerts the user that we have super important data terms
   ## don't show the popup if the user is logged in though.
@@ -65,26 +91,29 @@ shinyServer(function(input, output, session) {
 
     ## index of all papers in data
     vals <- dat %>%
-      select(index, issued)
+      select(index, submitted)
 
     if (initializing) {
       ## grab our first paper!
       ## sample from all indeces, set probability to date
       ## so that it will favor newer ones
-      new_ind <- sample(vals$index, 1, prob = vals$issued)
+      new_ind <- sample(vals$index, 1, prob = vals$submitted)
     } else {
       ## randomly grab a new paper but ignore the ones we've read
       val <- vals[ - which(vals$index %in% isolate(rv$user_dat$index)), ]
-      new_ind <- sample(val$index, 1, prob = val$issued)
+      new_ind <- sample(val$index, 1, prob = val$submitted)
     }
     ## make a new row for our session data.
     new_row <- data.frame(
       index   = new_ind,
       title   = dat$title[dat$index == new_ind],
-      link    = dat$url[dat$index == new_ind],
+      speaker    = dat$speaker[dat$index == new_ind],
       session = session_id,
       result  = NA,
+
       person  = isolate(rv$person_id)
+
+      # running
     )
 
     if (initializing) {
@@ -227,5 +256,21 @@ shinyServer(function(input, output, session) {
   })
   output$level <- renderText(level_func(nextPaper(), level_up))
   output$icon  <- renderUI(icon_func(nextPaper(), level_up))
+
+  # Let people download
+  output$download_data <- downloadHandler(
+    filename = "my_ratings.csv",
+    content = function(file) {
+      udat = rv$user_dat %>%
+        filter(!is.na(result))
+        # mutate(result = replace(result, result == "skipped", NA)) %>%
+        # separate(result,
+        #          into = c("exciting", "questionable"),
+        #          sep = " and ") %>%
+        # transmute(title, link, exciting, questionable, session) %>%
+        # mutate(user_id = session) %>% select(-session)
+      write.csv(udat, file)
+    }
+  )
 
 })
