@@ -11,16 +11,18 @@ $(function() {
   Shiny.addCustomMessageHandler("sendingpapers",
     function(data) {
       console.log(data);
-      set_card(data.title[0], data.abstract[0])
+      set_card(data.title[0], data.abstract[0],data.byline[0])
     }
   );
 
   //a function to replace the value of the card
-  function set_card(title_text, abstract_text){
+  function set_card(title_text, byline_text, abstract_text){
       var swipeCard = $("#swipeCard");
       var title = $("#cardTitle");
+      var byline = $("#cardByline");
       var abstract = $("#cardAbstract");
       title.text(title_text);
+      byline.text(byline_text);
       abstract.text(abstract_text);
       //bring the card back to the middle.
       swipeCard.removeClass();

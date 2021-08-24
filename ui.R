@@ -24,6 +24,8 @@ navbarPage(
                               textInput("login_string","Login password emailed to you"),
                               actionButton("login_button", "Login", class = "btn-success"),
                               hr(),
+                              p("To vote, please swipe if you have a touch screen,
+                                or click and drag in the gestures described below."),
                               HTML(
                                 "<table style='line-height:1.5em;'>
                                 <tr>
@@ -64,6 +66,8 @@ navbarPage(
                    #              popupDiv = terms_content_div,
                    div(id = "swipeCard", class = "card",
                        h3(id = "cardTitle", "Title"),
+                       hr(),
+                       p(id = "cardByline", "Author content"),
                        hr(),
                        p(id = "cardAbstract", "Abstract content")
                    )
