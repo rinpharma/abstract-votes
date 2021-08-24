@@ -41,7 +41,7 @@ $(function() {
                 swipeCard.addClass("swipe-up");
                 break;
               case "down":
-                decision = "skipped";
+                decision = "skippedit";
                 decision_icon = "<i class = 'fa fa-check fa-5x' aria-hidden='true'></i>"
                 swipeCard.addClass("swipe-down");
                 break;

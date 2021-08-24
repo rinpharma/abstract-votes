@@ -6,23 +6,23 @@ library(plotly)
 library(shinysense)
 
 #Load our terms content to put into the terms popup
-#source("terms_content.R")
+source("terms_content.R")
 
 navbarPage(
-  title = div(img(src="images/dark_logo_small.png", style="margin-top: -8px;", height = 40)),
+  title = div(img(src="images/logo.png", style="margin-top: -8px;", height = 40)),
   tabPanel("Rate",
            div(id = "rate_wrapper",
                sidebarLayout(
-                 sidebarPanel(width = 4, id = "rate_info",
+                 sidebarPanel(
+                              width = 4, id = "rate_info",
                               tags$head(
                                 tags$script(src = "touchSwipe.js"),
                                 tags$script(src = "shinySwiper.js"),
                                 tags$link(rel = "stylesheet", type = "text/css", href = "appStyle.css")
                               ),
                               h4("Swipe abstract to rate the submission"),
-                              textInput("name","Your name"),
-                              textInput("login_string","Login password emailed to you"),
-                              actionButton("login_button", "Login", class = "btn-success"),
+                              hr(),
+                              textOutput("authenticated"),
                               hr(),
                               p("To vote, please swipe if you have a touch screen,
                                 or click and drag in the gestures described below."),
@@ -51,27 +51,27 @@ navbarPage(
                                 </table>"
                               ),
                               hr(),
+                              h4("Abstracts reviewed"),
+                              textOutput("togo"),
+
                               h4("Rate papers & level up:"),
                               uiOutput("icon"),
                               em(textOutput("level")),
                               h4("Download your ratings:"),
-                              downloadButton("download_data", "Download"),
-                              h4("Tell someone about papr:"),
-                              a(href = "https://twitter.com/intent/tweet?text=Check%20out%20papr%20its%20like%20Tinder%20for%20preprints%20https://jhubiostatistics.shinyapps.io/papr", icon("twitter")),
-                              a(href = "https://www.facebook.com/sharer/sharer.php?u=https%3A//jhubiostatistics.shinyapps.io/papr", icon("facebook"))
+                              downloadButton("download_data", "Download")
                               ),
                  mainPanel(fluidPage(
-                   # shinypopupUI("terms",
-                   #              buttonText = "Log me in",
-                   #              popupDiv = terms_content_div,
-                   div(id = "swipeCard", class = "card",
-                       h3(id = "cardTitle", "Title"),
-                       hr(),
-                       p(id = "cardByline", "Author content"),
-                       hr(),
-                       p(id = "cardAbstract", "Abstract content")
-                   )
-                   #)#end popup
+                    shinypopupUI("terms",
+                                 buttonText = "Log me in",
+                                 popupDiv = terms_content_div,
+                     div(id = "swipeCard", class = "card",
+                         h3(id = "cardTitle", "Title"),
+                         hr(),
+                         p(id = "cardByline", "Author content"),
+                         hr(),
+                         p(id = "cardAbstract", "Abstract content")
+                     )
+                   )#end popup
                  ))
                  )
                )

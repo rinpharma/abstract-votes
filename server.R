@@ -1,11 +1,12 @@
 library(readr)
 library(lubridate)
-library(googlesheets)
 library(rdrop2)
 library(tidyr)
 library(dplyr)
+library(glue)
 library(shiny)
 library(shinysense)
+#library(shinyjs)
 
 #source("google_api_info.R")
 
@@ -41,7 +42,8 @@ level_up <- 4 #Number of papers needed to review to level up.
 shinyServer(function(input, output, session) {
 
   ## load data
-  dat <- readRDS("data.rds") #R dataset of paper info
+  dat <- readRDS("./data.rds") #R dataset of paper info
+  login_strings <- readRDS("./login_strings.rds")
   load("./term_pca_df.Rda") #R dataset of paper PCA
   token <- readRDS("./papr-drop.rds")
 
@@ -54,7 +56,6 @@ shinyServer(function(input, output, session) {
     login = TRUE,
     person_id = 12345,
     counter = -1,
-    name = NA,
     user_dat = data.frame(
       index   = NA,
       title   = NA,
@@ -66,9 +67,8 @@ shinyServer(function(input, output, session) {
   )
 
   ## Login
-  observeEvent(input$login_button, {
-    rv$person_id <- digest::digest(input$name)
-    warning(rv$person_id)
+  observeEvent(input$login_string, {
+    rv$person_id <- isolate(input$login_string)
   })
 
   ## make a popup that alerts the user that we have super important data terms
@@ -92,19 +92,23 @@ shinyServer(function(input, output, session) {
     ## are they deciding?
     deciding <- choice == "deciding"
 
+    ## all done?
+    validate(
+      need(nextPaper() < nrow(dat), "All done :)")
+    )
+
     ## index of all papers in data
     vals <- dat %>%
       select(index, submitted)
 
     if (initializing) {
       ## grab our first paper!
-      ## sample from all indeces, set probability to date
-      ## so that it will favor newer ones
-      new_ind <- sample(vals$index, 1, prob = vals$submitted)
+      ## sample from all indeces,
+      new_ind <- sample(vals$index, 1)
     } else {
       ## randomly grab a new paper but ignore the ones we've read
       val <- vals[ - which(vals$index %in% isolate(rv$user_dat$index)), ]
-      new_ind <- sample(val$index, 1, prob = val$submitted)
+      new_ind <- sample(val$index, 1)
     }
     ## make a new row for our session data.
     new_row <- data.frame(
@@ -113,7 +117,6 @@ shinyServer(function(input, output, session) {
       speaker    = dat$speaker[dat$index == new_ind],
       session = session_id,
       result  = NA,
-
       person  = isolate(rv$person_id)
 
       # running
@@ -136,9 +139,9 @@ shinyServer(function(input, output, session) {
     write_csv(isolate(rv$user_dat), file_path) #write the csv
     drop_upload(file_path, "rinpharma/2021/call4papers/", dtoken = token) #upload to dropbox too.
 
-    file_path2 <- file.path(tempdir(),
-                            paste0("user_dat_",isolate(rv$person_id), ".csv")
-    )
+    # file_path2 <- file.path(tempdir(),
+    #                         paste0("user_dat_",isolate(rv$person_id), ".csv")
+    # )
     # write_csv(data.frame(name = isolate(input$name),
     #                      twitter = isolate(input$twitter),
     #                      PC1 = isolate(rv$pc[1]),
@@ -225,19 +228,12 @@ shinyServer(function(input, output, session) {
   ##########################################################################
   ##########################################################################
 
-  ## start datastore and display user's Google display name after successful login
-  output$display_username <- renderText({
-
-    if(rv$login){
-      paste("You're logged in with Google!") ## return name after validation
-    } else {
-      "Log in to keep track of rankings!"
-    }
-  })
 
 
   ## on the interaction with the swipe card do this stuff
   observeEvent(input$cardSwiped, {
+
+
     ## get swipe results from javascript
     swipeResults <- input$cardSwiped
 
@@ -259,6 +255,17 @@ shinyServer(function(input, output, session) {
   })
   output$level <- renderText(level_func(nextPaper(), level_up))
   output$icon  <- renderUI(icon_func(nextPaper(), level_up))
+
+  output$togo <- renderText(glue(
+    "{nextPaper()} / {nrow(dat)} ({round(100*nextPaper()/nrow(dat))}%)"
+  ))
+
+  output$authenticated <- renderText({
+    validate(
+      need(rv$person_id %in% login_strings, "You are not authenticated and results may not be recorded. Please refresh and login using the string provided.")
+    )
+    "Authenticated login"
+  })
 
   # Let people download
   output$download_data <- downloadHandler(

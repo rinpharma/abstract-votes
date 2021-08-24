@@ -1,10 +1,9 @@
 terms_content_div <- div(
-  h1("Data Policy"),
+  h1("Login"),
   hr(),
   textInput(
-    inputId = "login_id",
-    label = "Please provide the login text emailed to you",
+    inputId = "login_string",
+    label = "Please provide the login string emailed to you",
     value = NA),
-  p("If you use this app while logged in your data is collected. For each user we store the titles and rankings of every paper they have seen and rated."),
-  p("These data may be analyzed by the authors of this application or released as an anonymized (no social media acounts or names connected) format.")
+  p("Right now authentication is optional, and the app will record data to the back end regardless of what password you put in.")
 )
