@@ -6,7 +6,7 @@ $(function() {
    fixed.addEventListener('touchmove', function(e) {
            e.preventDefault();
    }, false);
-  
+
   //Grabs the latest paper from the server and displays it to our card.
   Shiny.addCustomMessageHandler("sendingpapers",
     function(data) {
@@ -34,23 +34,23 @@ $(function() {
         var decision = null;
         switch (direction) {
               case "up":
-                decision = "exciting and questionable";
+                decision = "maybe";
                 decision_icon = "<i class = 'fa fa-volume-up fa-5x' aria-hidden='true'></i>";
                 swipeCard.addClass("swipe-up");
                 break;
               case "down":
-                decision = "boring and probable";
+                decision = "skipped";
                 decision_icon = "<i class = 'fa fa-check fa-5x' aria-hidden='true'></i>"
                 swipeCard.addClass("swipe-down");
                 break;
               case "right":
-                decision = "exciting and probable";
+                decision = "include";
                 decision_icon = "<i class = 'fa fa-star fa-5x' aria-hidden='true'></i>"
                 swipeCard.addClass("swipe-right");
                 choice = ""
                 break;
               case "left":
-                decision = "boring and questionable";
+                decision = "reject";
                 decision_icon = "<i class = 'fa fa-trash fa-5x' aria-hidden='true'></i>"
                 swipeCard.addClass("swipe-left");
                 break;
@@ -85,7 +85,7 @@ $(function() {
     window.setTimeout(() =>  Shiny.onInputChange("cardSwiped", "initializing"), 1000);
 
    //On mobile when a user tries to swipe up or down they simply get moved around the page. We change//
-   //make it such that when they scroll over the card we disable page scrolling. They will still be able 
-   
+   //make it such that when they scroll over the card we disable page scrolling. They will still be able
+
 
 });
