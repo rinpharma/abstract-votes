@@ -1,0 +1,128 @@
+---
+title: "FAKE VOTES FOR ILLUSTRATION PURPOSES"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(rdrop2)
+library(readr)
+library(dplyr)
+token <- readRDS("./papr-drop.rds")
+```
+
+```{r, message = FALSE, warning = FALSE, results = "hide"}
+#read in data
+files <- drop_dir("rinpharma/2021/call4papers/", dtoken = token)$path_lower
+tbl <- lapply(files, drop_read_csv, dtoken = token) %>% 
+  bind_rows() %>%
+  filter(!is.na(result)) 
+
+dat <- readRDS("./data.rds") #R dataset of paper info
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Reviewers {.value-box}
+
+```{r}
+valueBox(
+  value = n_distinct(tbl$person),
+  icon = "fa-users"
+)
+```
+
+### Abstracts displayed {.value-box}
+
+```{r}
+valueBox(
+  value = nrow(tbl),
+  icon = "fa-eye"
+)
+```
+
+### Skipped {.value-box}
+
+
+```{r}
+valueBox(
+  value = nrow(filter(tbl, result == "skippedit")),
+  icon = "fa-forward"
+)
+```
+
+### Rejected (-2 points) {.value-box}
+
+
+```{r}
+valueBox(
+  value = nrow(filter(tbl, result == "reject")),
+  icon = "fa-minus-circle"
+)
+```
+
+### Accepted (2 points) {.value-box}
+
+
+```{r}
+valueBox(
+  value = nrow(filter(tbl, result == "include")),
+  icon = "fa-clipboard-check"
+)
+```
+
+### Maybes (0 points) {.value-box}
+
+
+```{r}
+valueBox(
+  value = nrow(filter(tbl, result == "maybe")),
+  icon = "fa-question"
+)
+```
+
+Row
+-----------------------------------------------------------------------
+
+```{r}
+library(DT)
+
+dat %>% 
+  left_join(
+    tbl %>%
+      mutate(
+        score = case_when(
+          result == "include" ~ 2,
+          result == "reject" ~ -2,
+          result == "maybe" ~ 0
+        )
+      ) %>%
+      group_by(index) %>%
+      summarise(
+        mean = round(mean(score, na.rm = TRUE),1),
+        sd = round(sd(score,na.rm = TRUE),1)
+      ), 
+    by = "index"
+  ) %>%
+  mutate(
+    byline = paste0(speaker," (",affaliation,")")
+  ) %>%
+  select(title,abstract,types,byline,mean,sd) %>%
+  arrange(-mean) %>%
+  datatable(rownames = FALSE) %>%
+  formatStyle(
+    'mean',
+    #color = styleInterval(c(-2, 2), c('white', 'blue', 'red')),
+    backgroundColor = styleInterval(c(0,1), c('pink',"yellow", 'lightgreen'))
+  ) %>%
+  formatStyle(
+    'sd',
+    #color = styleInterval(c(-2, 2), c('white', 'blue', 'red')),
+    backgroundColor = styleInterval(c(0.5,1.5), c('lightgreen',"yellow",'pink'))
+  )
+```
