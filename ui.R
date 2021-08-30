@@ -24,8 +24,8 @@ navbarPage(
                               hr(),
                               textOutput("authenticated"),
                               hr(),
-                              p("To vote, please swipe if you have a touch screen,
-                                or click and drag in the gestures described below."),
+                              p("To vote, please swipe on touch screens,
+                                or click and drag in the directions specified below."),
                               HTML(
                                 "<table style='line-height:1.5em;'>
                                 <tr>
@@ -54,7 +54,7 @@ navbarPage(
                               h4("Abstracts reviewed"),
                               textOutput("togo"),
 
-                              h4("Rate papers & level up:"),
+                              h4("Rate abstracts & level up:"),
                               uiOutput("icon"),
                               em(textOutput("level")),
                               h4("Download your ratings:"),

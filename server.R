@@ -13,40 +13,12 @@ library(shinysense)
 #token <- drop_auth()
 #saveRDS(token, "papr-drop.rds")
 
-# get responses
-  # dat <- googlesheets4::read_sheet(
-  #   "https://docs.google.com/spreadsheets/d/1yP8MbqSKku8nmEM1AxmEEBqBGTHPBjmeZwWb95UM-UQ/edit#gid=870824569",
-  #   sheet = "TEST"
-  #   ) %>%
-  #   select(
-  #     title = `What is the title of your talk?`,
-  #     abstract = Abstract,
-  #     submitted = `Submitted At`,
-  #     types = `Which types of talk would you like to be considered for?`,
-  #     affaliation = `{{field:47d88af0-489e-4c10-90a3-eea41eb6c246}}, what is your affiliation?`,
-  #     speaker = Speaker,
-  #     email = Email,
-  #     topic = Topic
-  #   ) %>%
-  #   mutate(
-  #     index = row_number(),
-  #     submitted = as.Date(submitted),
-  #     byline = glue::glue("{speaker} ({affaliation}) wishes this abstract to be considered for {types}")
-  #   )
-  #
-  # saveRDS(dat,"data.rds")
+
 
 ## set some parameters
 level_up <- 4 #Number of papers needed to review to level up.
 
 shinyServer(function(input, output, session) {
-
-  ## load data
-  dat <- readRDS("./data.rds") #R dataset of paper info
-  login_strings <- readRDS("./login_strings.rds")
-  load("./term_pca_df.Rda") #R dataset of paper PCA
-  token <- readRDS("./papr-drop.rds")
-
   ## set up user data
   session_id <- as.numeric(Sys.time())
 
@@ -103,12 +75,11 @@ shinyServer(function(input, output, session) {
 
     if (initializing) {
       ## grab our first paper!
-      ## sample from all indeces,
-      new_ind <- sample(vals$index, 1)
+      new_ind <- vals$index[1]
     } else {
-      ## randomly grab a new paper but ignore the ones we've read
+      ## next paper
       val <- vals[ - which(vals$index %in% isolate(rv$user_dat$index)), ]
-      new_ind <- sample(val$index, 1)
+      new_ind <- val$index[1]
     }
     ## make a new row for our session data.
     new_row <- data.frame(
@@ -242,11 +213,24 @@ shinyServer(function(input, output, session) {
       ## for a new paper
       ind <- rate_paper(swipeResults, file_path, rv)
       ## grab info on new paper
-      selection <- dat[ind, ]
+      selection <- filtered_data()[ind, ]
       ## send it over to javascript
       session$sendCustomMessage(type = "sendingpapers", selection)
       rv$counter = rv$counter + 1
     }
+  })
+
+  ## Filtered indexes
+  filtered_indexes <- reactive({
+    dat %>% filter(topic %in% input$topics_filter) %>% pull(index)
+  })
+
+  filtered_data <- reactive({
+    dat %>% filter(index %in% filtered_indexes())
+  })
+
+  filtered_data_count <- reactive({
+    nrow(filtered_data())
   })
 
   ## on each rating or skip send the counter sum to update level info.
@@ -257,14 +241,18 @@ shinyServer(function(input, output, session) {
   output$icon  <- renderUI(icon_func(nextPaper(), level_up))
 
   output$togo <- renderText(glue(
-    "{nextPaper()} / {nrow(dat)} ({round(100*nextPaper()/nrow(dat))}%)"
+    "{nextPaper()} / {filtered_data_count()} ({round(100*nextPaper()/filtered_data_count())}%)"
+  ))
+
+  output$filtered_data_count_text <- renderText(glue(
+    "Based on current selection you will be asked to review {filtered_data_count()} abstracts"
   ))
 
   output$authenticated <- renderText({
     validate(
-      need(rv$person_id %in% login_strings, "You are not authenticated and results may not be recorded. Please refresh and login using the string provided.")
+      need(rv$person_id != "", "App in testing mode as no name provided.")
     )
-    "Authenticated login"
+    paste("Your responses are recorded as coming from",rv$person_id)
   })
 
   # Let people download
