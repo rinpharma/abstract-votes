@@ -1,5 +1,5 @@
 ---
-title: "FAKE VOTES FOR ILLUSTRATION PURPOSES"
+title: "Interim votes for call for abstracts: rendered `r Sys.time()`"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
@@ -11,18 +11,21 @@ library(flexdashboard)
 library(rdrop2)
 library(readr)
 library(dplyr)
-token <- readRDS("./papr-drop.rds")
+token <- readRDS("../papr-drop.rds")
 ```
 
 ```{r, message = FALSE, warning = FALSE, results = "hide"}
 #read in data
-files <- drop_dir("rinpharma/2021/call4papers/", dtoken = token)$path_lower
+files <- drop_dir("rinpharma/2022/call4papers/", dtoken = token)$path_lower
 tbl <- lapply(files, drop_read_csv, dtoken = token) %>% 
   bind_rows() %>%
   filter(!is.na(result)) 
 
-dat <- readRDS("./data.rds") #R dataset of paper info
+dat <- readRDS("../data.rds") #R dataset of paper info
 
+# if voted 2x, take last vote
+tbl <- tbl %>% group_by(title, person) %>% arrange(-index) %>% 
+  mutate(vote = row_number()) %>% filter(vote == 1)
 ```
 
 Row
