@@ -86,9 +86,7 @@ shinyServer(function(input, output, session) {
       # running
     )
 
-    if (initializing) {
-      ## if this is the first time we're running the function
-      ## create the dataframe for session
+    if (initializing) {      ## create the dataframe for session
       ## add new empty row the csv
       rv$user_dat <- new_row
     } else {
@@ -101,7 +99,7 @@ shinyServer(function(input, output, session) {
     }
 
     write_csv(isolate(rv$user_dat), file_path) #write the csv
-    drop_upload(file_path, "rinpharma/2021/call4papers/", dtoken = token) #upload to dropbox too.
+    drop_upload(file_path, "rinpharma/2022/call4papers/", dtoken = token) #upload to dropbox too.
 
     # file_path2 <- file.path(tempdir(),
     #                         paste0("user_dat_",isolate(rv$person_id), ".csv")
