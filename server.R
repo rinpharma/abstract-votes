@@ -1,16 +1,9 @@
-library(readr)
-library(lubridate)
-library(rdrop2)
-library(tidyr)
-library(dplyr)
-library(glue)
-library(shiny)
-library(shinysense)
+
 #library(shinyjs)
 
 #source("google_api_info.R")
 
-#token <- drop_auth()
+#token <- drop_auth(new_user = TRUE) # old
 #saveRDS(token, "papr-drop.rds")
 
 
