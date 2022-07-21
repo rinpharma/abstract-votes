@@ -1,18 +1,20 @@
 # get responses
-library(tidyverse)
+library(dplyr)
 
 dat <- googlesheets4::read_sheet(
-  "https://docs.google.com/spreadsheets/d/1yP8MbqSKku8nmEM1AxmEEBqBGTHPBjmeZwWb95UM-UQ/edit#gid=870824569",
-  sheet = "TEST"
-  ) %>%
+  "https://docs.google.com/spreadsheets/d/1s-5VD_QfjA6r4r8ebvsLnNj8xuOGlTd3chbdKI0i2K8/edit#gid=0",
+  sheet = "raw_call4papers"
+  )
+
+dat <- dat %>%
   select(
     title = `What is the title of your talk?`,
-    abstract = Abstract,
-    submitted = `Submitted At`,
+    abstract = `Please provide an abstract`,
+    submitted = `Timestamp`,
     types = `Which types of talk would you like to be considered for?`,
-    affaliation = `{{field:47d88af0-489e-4c10-90a3-eea41eb6c246}}, what is your affiliation?`,
-    speaker = Speaker,
-    email = Email,
+    affaliation = `What company or institution are you affiliated with?`,
+    speaker = `What is the speaker's name?`,
+    email = `Email Address`,
     topic = Topic
   ) %>%
   mutate(
@@ -22,3 +24,4 @@ dat <- googlesheets4::read_sheet(
   )
 
 saveRDS(dat,"data.rds")
+
